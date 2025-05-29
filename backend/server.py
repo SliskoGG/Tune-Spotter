@@ -159,9 +159,9 @@ class AudioExtractionResult(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 async def extract_audio_segment(url: str, start_time: Optional[str] = None, end_time: Optional[str] = None) -> tuple[bytes, str, dict]:
-    """Extract audio segment from YouTube URL"""
+    """Extract audio segment from YouTube URL with precise time cutting"""
     try:
-        # Configure yt-dlp for simple extraction
+        # Configure yt-dlp for extraction
         ydl_opts = {
             'format': 'bestaudio[ext=m4a]/bestaudio/best',
             'quiet': True,
@@ -186,9 +186,9 @@ async def extract_audio_segment(url: str, start_time: Optional[str] = None, end_
                     'original_url': url
                 }
                 
-                # Parse time inputs
+                # Parse time inputs and calculate segment duration
                 start_seconds = 0
-                end_seconds = None
+                end_seconds = duration  # Default to full duration
                 
                 if start_time:
                     time_parts = start_time.split(':')
@@ -204,47 +204,58 @@ async def extract_audio_segment(url: str, start_time: Optional[str] = None, end_
                     elif len(time_parts) == 3:  # HH:MM:SS
                         end_seconds = int(time_parts[0]) * 3600 + int(time_parts[1]) * 60 + int(time_parts[2])
                 
-                # Calculate duration of segment
-                if end_seconds and end_seconds > start_seconds:
-                    segment_duration = end_seconds - start_seconds
-                else:
-                    segment_duration = min(30, duration - start_seconds)  # Default 30 seconds or rest of video
+                # Calculate actual segment duration
+                segment_duration = end_seconds - start_seconds
                 
-                # Set ffmpeg options for extraction
-                if start_seconds > 0 or segment_duration < duration:
-                    postprocessor_args = ['-ss', str(start_seconds)]
-                    if segment_duration:
-                        postprocessor_args.extend(['-t', str(segment_duration)])
-                    ydl_opts['postprocessor_args'] = postprocessor_args
+                # Validate times
+                if segment_duration <= 0:
+                    raise Exception("End time must be after start time")
+                if start_seconds >= duration:
+                    raise Exception("Start time is beyond video duration")
                 
-                # Download the segment
+                # Apply ffmpeg options for precise time extraction
+                if start_time and end_time:
+                    # Extract specific segment
+                    ydl_opts['postprocessor_args'] = [
+                        '-ss', str(start_seconds),  # Start time
+                        '-t', str(segment_duration)  # Duration to extract
+                    ]
+                elif start_time:
+                    # Extract from start_time to end of video
+                    ydl_opts['postprocessor_args'] = [
+                        '-ss', str(start_seconds)
+                    ]
+                # If no times specified, download full audio (no postprocessor_args)
+                
+                # Download with time constraints
                 ydl.download([url])
                 
-                # Find and read the file
+                # Find and read the extracted file
                 for file in os.listdir(temp_dir):
                     if file.endswith(('.mp3', '.m4a', '.webm')):
                         file_path = os.path.join(temp_dir, file)
                         with open(file_path, 'rb') as f:
                             audio_data = f.read()
                         
-                        # Create filename with time info
-                        time_suffix = ""
-                        if start_time:
-                            time_suffix = f"_{start_time.replace(':', 'm')}s"
-                        if end_time:
-                            time_suffix += f"-{end_time.replace(':', 'm')}s"
-                        
-                        filename = f"{title}{time_suffix}.mp3"
+                        # Create descriptive filename
+                        clean_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                        if start_time and end_time:
+                            filename = f"{clean_title}_{start_time.replace(':', 'm')}s-{end_time.replace(':', 'm')}s.mp3"
+                        elif start_time:
+                            filename = f"{clean_title}_from_{start_time.replace(':', 'm')}s.mp3"
+                        else:
+                            filename = f"{clean_title}_full.mp3"
                         
                         metadata['extracted_segment'] = {
                             'start_time': start_seconds,
+                            'end_time': end_seconds,
                             'duration': segment_duration,
                             'filename': filename
                         }
                         
                         return audio_data, filename, metadata
                 
-                raise Exception("No audio file found after download")
+                raise Exception("No audio file found after extraction")
                 
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to extract audio from URL: {str(e)}")
