@@ -346,6 +346,7 @@ const MusicRecognition = () => {
                 {/* Platform Badges */}
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span className="badge badge-blue">YouTube</span>
+                  <span className="badge badge-blue">SoundCloud</span>
                   <span className="badge badge-green">Audio Extraction</span>
                   <span className="badge badge-green">Time Range Support</span>
                 </div>
