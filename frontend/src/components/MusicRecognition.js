@@ -229,7 +229,9 @@ const MusicRecognition = () => {
                 <p className="text-body" style={{ marginBottom: '24px' }}>
                   Enter a YouTube, SoundCloud, or direct audio link
                 </p>
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                
+                {/* Main URL Input */}
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
                   <input
                     type="url"
                     value={url}
@@ -253,10 +255,58 @@ const MusicRecognition = () => {
                     )}
                   </button>
                 </div>
+
+                {/* Enhanced YouTube Options */}
+                <div className="card" style={{ padding: '16px', marginBottom: '16px', background: '#f8fafc' }}>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
+                    YouTube Enhanced Options
+                  </h4>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px', alignItems: 'center' }}>
+                    {/* Start Time Input */}
+                    <label style={{ fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
+                      Start at:
+                    </label>
+                    <input
+                      type="text"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      placeholder="2:15 or 0:45 (MM:SS)"
+                      className="input"
+                      style={{ fontSize: '14px', padding: '8px 12px' }}
+                    />
+                    
+                    {/* Multiple Sampling Toggle */}
+                    <label style={{ fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
+                      Smart sampling:
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={sampleMultiple}
+                        onChange={(e) => setSampleMultiple(e.target.checked)}
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      <span style={{ fontSize: '13px', color: '#64748b' }}>
+                        Try multiple points in long videos (3+ min)
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div style={{ marginTop: '12px', padding: '8px', background: '#e0f2fe', borderRadius: '6px' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#0369a1' }}>
+                      💡 <strong>Tips:</strong> Use "Start at" for specific songs (e.g., "2:30"). 
+                      Enable "Smart sampling" for long videos, compilations, or when the song might be anywhere in the video.
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Platform Badges */}
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span className="badge badge-blue">YouTube</span>
                   <span className="badge badge-blue">SoundCloud</span>
                   <span className="badge badge-blue">Direct Links</span>
+                  <span className="badge badge-green">Enhanced Sampling</span>
                 </div>
               </div>
             )}
