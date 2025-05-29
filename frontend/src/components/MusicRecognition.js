@@ -429,7 +429,7 @@ const MusicRecognition = () => {
             </div>
           )}
 
-          {/* Results Display */}
+          {/* Recognition Results Display */}
           {result && (
             <div>
               {result.status === 'success' ? (
