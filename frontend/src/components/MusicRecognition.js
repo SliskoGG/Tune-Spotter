@@ -64,8 +64,8 @@ const MusicRecognition = () => {
       if (startTime.trim()) {
         formData.append('start_time', startTime);
       }
-      if (sampleMultiple) {
-        formData.append('sample_multiple', 'true');
+      if (endTime.trim()) {
+        formData.append('end_time', endTime);
       }
 
       const response = await axios.post(`${API_BASE_URL}/api/recognize/url`, formData, {
