@@ -9,7 +9,6 @@ const MusicRecognition = () => {
   const [activeTab, setActiveTab] = useState('file'); // 'file', 'url', 'record'
   const [url, setUrl] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [audioChunks, setAudioChunks] = useState([]);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
 
