@@ -11,6 +11,9 @@ const MusicRecognition = () => {
   const [startTime, setStartTime] = useState('');
   const [sampleMultiple, setSampleMultiple] = useState(false);
   const [videoDuration, setVideoDuration] = useState(null);
+  const [startTime, setStartTime] = useState('');
+  const [sampleMultiple, setSampleMultiple] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
