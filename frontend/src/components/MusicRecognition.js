@@ -53,28 +53,59 @@ const MusicRecognition = () => {
       return;
     }
 
+    if (!startTime.trim() || !endTime.trim()) {
+      setError('Please specify both start time and end time for extraction');
+      return;
+    }
+
     resetState();
     setIsLoading(true);
 
     try {
       const formData = new FormData();
       formData.append('url', url);
-      
-      // Add time parameters
-      if (startTime.trim()) {
-        formData.append('start_time', startTime);
-      }
-      if (endTime.trim()) {
-        formData.append('end_time', endTime);
-      }
+      formData.append('start_time', startTime);
+      formData.append('end_time', endTime);
 
       const response = await axios.post(`${API_BASE_URL}/api/extract/url`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        responseType: 'blob', // Important for file download
       });
 
-      setExtractionResult(response.data);
+      // Create download link for the audio file
+      const audioBlob = new Blob([response.data], { type: 'audio/mpeg' });
+      const downloadUrl = window.URL.createObjectURL(audioBlob);
+      
+      // Extract filename from response headers or create one
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'extracted_audio.mp3';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      // Create and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      // Show success message
+      setExtractionResult({
+        title: 'Audio extracted and downloaded successfully!',
+        message: `File "${filename}" has been saved to your Downloads folder.`,
+        status: 'success'
+      });
+
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to extract audio from URL');
     } finally {
