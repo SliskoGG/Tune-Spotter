@@ -225,9 +225,9 @@ const MusicRecognition = () => {
             {/* URL Tab */}
             {activeTab === 'url' && (
               <div>
-                <h2 className="section-title">Recognize from URL</h2>
+                <h2 className="section-title">Extract Audio from URL</h2>
                 <p className="text-body" style={{ marginBottom: '24px' }}>
-                  Enter a YouTube, SoundCloud, or direct audio link
+                  Extract audio clips from YouTube videos - perfect for getting specific songs from compilations
                 </p>
                 
                 {/* Main URL Input */}
@@ -241,64 +241,63 @@ const MusicRecognition = () => {
                     style={{ flex: 1 }}
                   />
                   <button
-                    onClick={handleUrlRecognition}
+                    onClick={handleUrlExtraction}
                     disabled={!url.trim() || isLoading}
                     className="btn btn-primary"
                   >
                     {isLoading ? (
                       <>
                         <div className="loading-spinner"></div>
-                        Processing
+                        Extracting
                       </>
                     ) : (
-                      'Recognize'
+                      'Extract Audio'
                     )}
                   </button>
                 </div>
 
-                {/* Enhanced YouTube Options */}
+                {/* Time Range Options */}
                 <div className="card" style={{ padding: '16px', marginBottom: '16px', background: '#f8fafc' }}>
                   <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
-                    YouTube Enhanced Options
+                    Time Range (Optional)
                   </h4>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '12px', alignItems: 'center' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     {/* Start Time Input */}
-                    <label style={{ fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
-                      Start at:
-                    </label>
-                    <input
-                      type="text"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      placeholder="2:15 or 0:45 (MM:SS)"
-                      className="input"
-                      style={{ fontSize: '14px', padding: '8px 12px' }}
-                    />
+                    <div>
+                      <label style={{ fontSize: '13px', color: '#64748b', fontWeight: '500', display: 'block', marginBottom: '4px' }}>
+                        Start at:
+                      </label>
+                      <input
+                        type="text"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        placeholder="2:15 (MM:SS)"
+                        className="input"
+                        style={{ fontSize: '14px', padding: '8px 12px' }}
+                      />
+                    </div>
                     
-                    {/* Multiple Sampling Toggle */}
-                    <label style={{ fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
-                      End at:
-                    </label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* End Time Input */}
+                    <div>
+                      <label style={{ fontSize: '13px', color: '#64748b', fontWeight: '500', display: 'block', marginBottom: '4px' }}>
+                        End at:
+                      </label>
                       <input
                         type="text"
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
-                        placeholder="5:00 or 2:30 (MM:SS)"
+                        placeholder="2:45 (MM:SS)"
                         className="input"
                         style={{ fontSize: '14px', padding: '8px 12px' }}
                       />
-                      <span style={{ fontSize: '13px', color: '#64748b' }}>
-                        Optional end time for the clip
-                      </span>
                     </div>
                   </div>
                   
-                  <div style={{ marginTop: '12px', padding: '8px', background: '#e0f2fe', borderRadius: '6px' }}>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#0369a1' }}>
-                      💡 <strong>Tips:</strong> Use "Start at" for specific songs (e.g., "2:30"). 
-                      Enable "Smart sampling" for long videos, compilations, or when the song might be anywhere in the video.
+                  <div style={{ marginTop: '12px', padding: '8px', background: '#dcfce7', borderRadius: '6px' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#166534' }}>
+                      💡 <strong>Examples:</strong> Leave blank for full song, or specify "2:15" to "2:45" to extract just the chorus. 
+                      Perfect for Beatles Greatest Hits compilations!
                     </p>
                   </div>
                 </div>
@@ -306,9 +305,8 @@ const MusicRecognition = () => {
                 {/* Platform Badges */}
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span className="badge badge-blue">YouTube</span>
-                  <span className="badge badge-blue">SoundCloud</span>
-                  <span className="badge badge-blue">Direct Links</span>
-                  <span className="badge badge-green">Enhanced Sampling</span>
+                  <span className="badge badge-green">Audio Extraction</span>
+                  <span className="badge badge-green">Time Range Support</span>
                 </div>
               </div>
             )}
