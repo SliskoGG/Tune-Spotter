@@ -249,27 +249,30 @@ async def extract_audio_segment(url: str, start_time: Optional[str] = None, end_
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to extract audio from URL: {str(e)}")
 
-@api_router.post("/extract/url", response_model=AudioExtractionResult)
+@api_router.post("/extract/url")
 async def extract_from_url(
     url: str = Form(...), 
     start_time: Optional[str] = Form(None),
     end_time: Optional[str] = Form(None)
 ):
-    """Extract audio segment from YouTube or other supported URLs"""
+    """Extract audio segment from YouTube or other supported URLs and return as downloadable file"""
     
     try:
         # Extract audio segment
         audio_data, filename, metadata = await extract_audio_segment(url, start_time, end_time)
         
-        # Create response
-        result = AudioExtractionResult(
-            title=metadata['title'],
-            duration=metadata['duration'],
-            extracted_segment=metadata.get('extracted_segment'),
-            message=f"Extracted {len(audio_data)} bytes as {filename}"
-        )
+        # Return the actual audio file for download
+        from fastapi.responses import Response
         
-        return result
+        return Response(
+            content=audio_data,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": f"attachment; filename=\"{filename}\"",
+                "Content-Type": "audio/mpeg",
+                "Content-Length": str(len(audio_data))
+            }
+        )
             
     except HTTPException:
         raise
