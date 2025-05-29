@@ -206,7 +206,7 @@ const MusicRecognition = () => {
           
           {/* Header */}
           <div className="center" style={{ flexDirection: 'column', paddingTop: '48px' }}>
-            <h1 className="title">TuneSpotter</h1>
+            <h1 className="title">SoundSnip</h1>
             <p className="subtitle">Extract audio clips from YouTube & SoundCloud, or identify unknown songs from files and recordings</p>
           </div>
 
