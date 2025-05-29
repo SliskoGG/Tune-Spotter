@@ -323,24 +323,96 @@ async def recognize_from_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Recognition failed: {str(e)}")
 
 @api_router.post("/recognize/url", response_model=MusicRecognitionResult)
-async def recognize_from_url(url: str = Form(...)):
-    """Recognize music from YouTube or other supported URLs"""
+async def recognize_from_url(
+    url: str = Form(...), 
+    start_time: Optional[str] = Form(None),
+    sample_multiple: bool = Form(False)
+):
+    """Recognize music from YouTube or other supported URLs with enhanced sampling"""
     
     try:
-        # Extract audio from URL
-        audio_data, filename = await extract_audio_from_url(url)
+        # Extract audio with new features
+        audio_data, filename, metadata = await extract_audio_from_url(url, start_time, sample_multiple)
         
-        # Recognize using AudD
-        result = await recognize_with_audd(audio_data, filename)
+        if sample_multiple and metadata.get('duration', 0) > 180:
+            # Handle multiple segments
+            audio_segments = []
+            
+            # Re-extract all segments for recognition
+            with tempfile.TemporaryDirectory() as temp_dir:
+                ydl_opts = {
+                    'format': 'bestaudio[ext=m4a]/bestaudio/best',
+                    'quiet': True,
+                    'no_warnings': True,
+                    'extractaudio': True,
+                    'audioformat': 'mp3',
+                    'prefer_ffmpeg': True,
+                }
+                
+                duration = metadata['duration']
+                sample_points = []
+                if duration > 600:  # 10+ minutes
+                    sample_points = [0, duration * 0.25, duration * 0.5, duration * 0.75]
+                else:  # 3-10 minutes
+                    sample_points = [0, duration * 0.5]
+                
+                for i, start_sec in enumerate(sample_points):
+                    try:
+                        segment_opts = ydl_opts.copy()
+                        segment_opts['outtmpl'] = os.path.join(temp_dir, f'segment_{i}_%(title)s.%(ext)s')
+                        
+                        if start_sec > 0:
+                            segment_opts['postprocessor_args'] = [
+                                '-ss', str(int(start_sec)),
+                                '-t', '30'
+                            ]
+                        else:
+                            segment_opts['postprocessor_args'] = ['-t', '30']
+                        
+                        with yt_dlp.YoutubeDL(segment_opts) as segment_ydl:
+                            segment_ydl.download([url])
+                            
+                            for file in os.listdir(temp_dir):
+                                if file.startswith(f'segment_{i}_') and file.endswith(('.mp3', '.m4a', '.webm')):
+                                    file_path = os.path.join(temp_dir, file)
+                                    with open(file_path, 'rb') as f:
+                                        segment_data = f.read()
+                                    audio_segments.append({
+                                        'data': segment_data,
+                                        'start_time': int(start_sec),
+                                        'filename': f"segment_{i}_{metadata['title']}.mp3"
+                                    })
+                                    break
+                    except Exception as e:
+                        logger.warning(f"Failed to extract segment {i}: {str(e)}")
+                        continue
+            
+            # Recognize multiple segments
+            if audio_segments:
+                result = await recognize_multiple_segments(audio_segments, metadata)
+            else:
+                # Fallback to single recognition
+                result = await recognize_with_audd(audio_data, filename)
+        else:
+            # Single recognition
+            result = await recognize_with_audd(audio_data, filename)
+            result['metadata'] = metadata
         
         # Create response
         if result["status"] == "success":
-            return MusicRecognitionResult(**result)
+            response_data = MusicRecognitionResult(**result)
+            # Add enhanced metadata
+            if 'segment_info' in result:
+                response_data.message = f"Found in segment at {result['segment_info']['start_time']}s"
+            if 'all_segments_tried' in result:
+                response_data.message = f"Best match from {result['successful_segments']}/{result['all_segments_tried']} segments"
+            return response_data
         elif result["status"] == "not_found":
-            return MusicRecognitionResult(
+            response_data = MusicRecognitionResult(
                 status="not_found",
                 message=result["message"]
             )
+            return response_data
         else:
             raise HTTPException(status_code=500, detail=result["message"])
             
