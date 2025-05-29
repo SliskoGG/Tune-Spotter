@@ -8,6 +8,9 @@ const MusicRecognition = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('file');
   const [url, setUrl] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [sampleMultiple, setSampleMultiple] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
