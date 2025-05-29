@@ -219,7 +219,7 @@ const MusicRecognition = () => {
                 onClick={() => { setActiveTab('record'); resetState(); }}
                 className={`tab-button ${activeTab === 'record' ? 'active' : ''}`}
               >
-                Record Audio
+                Recognize Music
               </button>
             </div>
           </div>
