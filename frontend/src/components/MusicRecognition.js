@@ -278,7 +278,7 @@ const MusicRecognition = () => {
                     
                     {/* Multiple Sampling Toggle */}
                     <label style={{ fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
-                      Smart sampling:
+                      End at:
                     </label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
