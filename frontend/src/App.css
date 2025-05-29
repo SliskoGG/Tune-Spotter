@@ -1,38 +1,136 @@
 .App {
-    text-align: center;
+  text-align: center;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Loading animation */
+.loading-animation {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.loading-animation:after {
+  content: " ";
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin: 4px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  border-color: #ffffff transparent #ffffff transparent;
+  animation: loading-spin 1.2s linear infinite;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+@keyframes loading-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.App-link {
-    color: #61dafb;
+/* Audio visualizer effect */
+.audio-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.audio-wave span {
+  display: inline-block;
+  width: 3px;
+  height: 20px;
+  background: linear-gradient(to top, #3b82f6, #8b5cf6);
+  animation: audio-bounce 1.4s infinite ease-in-out;
+}
+
+.audio-wave span:nth-child(2) { animation-delay: -1.3s; }
+.audio-wave span:nth-child(3) { animation-delay: -1.2s; }
+.audio-wave span:nth-child(4) { animation-delay: -1.1s; }
+.audio-wave span:nth-child(5) { animation-delay: -1.0s; }
+
+@keyframes audio-bounce {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+  }
+  20% {
+    transform: scaleY(1.0);
+  }
+}
+
+/* File upload animations */
+.dropzone {
+  transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dropzone.active {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Results card animation */
+.result-card {
+  animation: slide-up 0.5s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button hover effects */
+.btn-primary {
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Pulse effect for recording */
+.recording-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+/* Music note icons floating animation */
+.floating-notes {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  animation: float 6s ease-in-out infinite;
+  opacity: 0.1;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
