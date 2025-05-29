@@ -335,10 +335,10 @@ const MusicRecognition = () => {
                     </div>
                   </div>
                   
-                  <div style={{ marginTop: '12px', padding: '8px', background: '#fef3c7', borderRadius: '6px' }}>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#92400e' }}>
-                      ⚠️ <strong>Required:</strong> Both start and end times must be specified to extract audio clips. 
-                      Example: Start "2:15" → End "2:45" extracts a 30-second clip.
+                  <div style={{ marginTop: '12px', padding: '8px', background: '#dcfce7', borderRadius: '6px' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#166534' }}>
+                      💡 <strong>Options:</strong> Leave times blank to download full audio as MP3, or specify both "2:15" to "2:45" to extract just that segment. 
+                      Perfect for Beatles Greatest Hits compilations!
                     </p>
                   </div>
                 </div>
