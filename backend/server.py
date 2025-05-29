@@ -322,104 +322,133 @@ async def recognize_from_file(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Recognition failed: {str(e)}")
 
-@api_router.post("/recognize/url", response_model=MusicRecognitionResult)
-async def recognize_from_url(
-    url: str = Form(...), 
-    start_time: Optional[str] = Form(None),
-    sample_multiple: bool = Form(False)
-):
-    """Recognize music from YouTube or other supported URLs with enhanced sampling"""
-    
+# Audio extraction response model
+class AudioExtractionResult(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    duration: int  # in seconds
+    extracted_segment: Optional[dict] = None
+    status: str = "success"
+    message: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+async def extract_audio_segment(url: str, start_time: Optional[str] = None, end_time: Optional[str] = None) -> tuple[bytes, str, dict]:
+    """Extract audio segment from YouTube URL"""
     try:
-        # Extract audio with new features
-        audio_data, filename, metadata = await extract_audio_from_url(url, start_time, sample_multiple)
+        # Configure yt-dlp for simple extraction
+        ydl_opts = {
+            'format': 'bestaudio[ext=m4a]/bestaudio/best',
+            'quiet': True,
+            'no_warnings': True,
+            'extractaudio': True,
+            'audioformat': 'mp3',
+            'prefer_ffmpeg': True,
+        }
         
-        if sample_multiple and metadata.get('duration', 0) > 180:
-            # Handle multiple segments
-            audio_segments = []
+        with tempfile.TemporaryDirectory() as temp_dir:
+            ydl_opts['outtmpl'] = os.path.join(temp_dir, '%(title)s.%(ext)s')
             
-            # Re-extract all segments for recognition
-            with tempfile.TemporaryDirectory() as temp_dir:
-                ydl_opts = {
-                    'format': 'bestaudio[ext=m4a]/bestaudio/best',
-                    'quiet': True,
-                    'no_warnings': True,
-                    'extractaudio': True,
-                    'audioformat': 'mp3',
-                    'prefer_ffmpeg': True,
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                # Extract info first
+                info = ydl.extract_info(url, download=False)
+                title = info.get('title', 'Unknown')
+                duration = info.get('duration', 0)
+                
+                metadata = {
+                    'title': title,
+                    'duration': duration,
+                    'original_url': url
                 }
                 
-                duration = metadata['duration']
-                sample_points = []
-                if duration > 600:  # 10+ minutes
-                    sample_points = [0, duration * 0.25, duration * 0.5, duration * 0.75]
-                else:  # 3-10 minutes
-                    sample_points = [0, duration * 0.5]
+                # Parse time inputs
+                start_seconds = 0
+                end_seconds = None
                 
-                for i, start_sec in enumerate(sample_points):
-                    try:
-                        segment_opts = ydl_opts.copy()
-                        segment_opts['outtmpl'] = os.path.join(temp_dir, f'segment_{i}_%(title)s.%(ext)s')
+                if start_time:
+                    time_parts = start_time.split(':')
+                    if len(time_parts) == 2:  # MM:SS
+                        start_seconds = int(time_parts[0]) * 60 + int(time_parts[1])
+                    elif len(time_parts) == 3:  # HH:MM:SS
+                        start_seconds = int(time_parts[0]) * 3600 + int(time_parts[1]) * 60 + int(time_parts[2])
+                
+                if end_time:
+                    time_parts = end_time.split(':')
+                    if len(time_parts) == 2:  # MM:SS
+                        end_seconds = int(time_parts[0]) * 60 + int(time_parts[1])
+                    elif len(time_parts) == 3:  # HH:MM:SS
+                        end_seconds = int(time_parts[0]) * 3600 + int(time_parts[1]) * 60 + int(time_parts[2])
+                
+                # Calculate duration of segment
+                if end_seconds and end_seconds > start_seconds:
+                    segment_duration = end_seconds - start_seconds
+                else:
+                    segment_duration = min(30, duration - start_seconds)  # Default 30 seconds or rest of video
+                
+                # Set ffmpeg options for extraction
+                if start_seconds > 0 or segment_duration < duration:
+                    postprocessor_args = ['-ss', str(start_seconds)]
+                    if segment_duration:
+                        postprocessor_args.extend(['-t', str(segment_duration)])
+                    ydl_opts['postprocessor_args'] = postprocessor_args
+                
+                # Download the segment
+                ydl.download([url])
+                
+                # Find and read the file
+                for file in os.listdir(temp_dir):
+                    if file.endswith(('.mp3', '.m4a', '.webm')):
+                        file_path = os.path.join(temp_dir, file)
+                        with open(file_path, 'rb') as f:
+                            audio_data = f.read()
                         
-                        if start_sec > 0:
-                            segment_opts['postprocessor_args'] = [
-                                '-ss', str(int(start_sec)),
-                                '-t', '30'
-                            ]
-                        else:
-                            segment_opts['postprocessor_args'] = ['-t', '30']
+                        # Create filename with time info
+                        time_suffix = ""
+                        if start_time:
+                            time_suffix = f"_{start_time.replace(':', 'm')}s"
+                        if end_time:
+                            time_suffix += f"-{end_time.replace(':', 'm')}s"
                         
-                        with yt_dlp.YoutubeDL(segment_opts) as segment_ydl:
-                            segment_ydl.download([url])
-                            
-                            for file in os.listdir(temp_dir):
-                                if file.startswith(f'segment_{i}_') and file.endswith(('.mp3', '.m4a', '.webm')):
-                                    file_path = os.path.join(temp_dir, file)
-                                    with open(file_path, 'rb') as f:
-                                        segment_data = f.read()
-                                    audio_segments.append({
-                                        'data': segment_data,
-                                        'start_time': int(start_sec),
-                                        'filename': f"segment_{i}_{metadata['title']}.mp3"
-                                    })
-                                    break
-                    except Exception as e:
-                        logger.warning(f"Failed to extract segment {i}: {str(e)}")
-                        continue
-            
-            # Recognize multiple segments
-            if audio_segments:
-                result = await recognize_multiple_segments(audio_segments, metadata)
-            else:
-                # Fallback to single recognition
-                result = await recognize_with_audd(audio_data, filename)
-        else:
-            # Single recognition
-            result = await recognize_with_audd(audio_data, filename)
-            result['metadata'] = metadata
+                        filename = f"{title}{time_suffix}.mp3"
+                        
+                        metadata['extracted_segment'] = {
+                            'start_time': start_seconds,
+                            'duration': segment_duration,
+                            'filename': filename
+                        }
+                        
+                        return audio_data, filename, metadata
+                
+                raise Exception("No audio file found after download")
+                
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to extract audio from URL: {str(e)}")
+
+@api_router.post("/extract/url", response_model=AudioExtractionResult)
+async def extract_from_url(
+    url: str = Form(...), 
+    start_time: Optional[str] = Form(None),
+    end_time: Optional[str] = Form(None)
+):
+    """Extract audio segment from YouTube or other supported URLs"""
+    
+    try:
+        # Extract audio segment
+        audio_data, filename, metadata = await extract_audio_segment(url, start_time, end_time)
         
         # Create response
-        if result["status"] == "success":
-            response_data = MusicRecognitionResult(**result)
-            # Add enhanced metadata
-            if 'segment_info' in result:
-                response_data.message = f"Found in segment at {result['segment_info']['start_time']}s"
-            if 'all_segments_tried' in result:
-                response_data.message = f"Best match from {result['successful_segments']}/{result['all_segments_tried']} segments"
-            return response_data
-        elif result["status"] == "not_found":
-            response_data = MusicRecognitionResult(
-                status="not_found",
-                message=result["message"]
-            )
-            return response_data
-        else:
-            raise HTTPException(status_code=500, detail=result["message"])
+        result = AudioExtractionResult(
+            title=metadata['title'],
+            duration=metadata['duration'],
+            extracted_segment=metadata.get('extracted_segment'),
+            message=f"Extracted {len(audio_data)} bytes as {filename}"
+        )
+        
+        return result
             
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Recognition failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Audio extraction failed: {str(e)}")
 
 @api_router.get("/health")
 async def health_check():
