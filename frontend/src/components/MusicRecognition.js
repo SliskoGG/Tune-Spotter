@@ -375,6 +375,60 @@ const MusicRecognition = () => {
             </div>
           )}
 
+          {/* Extraction Results Display */}
+          {extractionResult && (
+            <div>
+              <div className="result-success">
+                <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: '600' }}>
+                  Audio Extracted Successfully
+                </h3>
+                
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Video Title
+                    </p>
+                    <p style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+                      {extractionResult.title}
+                    </p>
+                  </div>
+                  
+                  <div className="grid-2">
+                    <div>
+                      <p style={{ margin: '0 0 4px 0', fontSize: '12px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Video Duration
+                      </p>
+                      <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>
+                        {Math.floor(extractionResult.duration / 60)}:{(extractionResult.duration % 60).toString().padStart(2, '0')}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p style={{ margin: '0 0 4px 0', fontSize: '12px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Extracted Clip
+                      </p>
+                      <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>
+                        {extractionResult.extracted_segment ? 
+                          `${Math.floor(extractionResult.extracted_segment.start_time / 60)}:${(extractionResult.extracted_segment.start_time % 60).toString().padStart(2, '0')} - ${extractionResult.extracted_segment.duration}s` 
+                          : 'Full audio'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Status
+                    </p>
+                    <p style={{ margin: 0, fontSize: '14px', opacity: 0.9 }}>
+                      {extractionResult.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Results Display */}
           {result && (
             <div>
