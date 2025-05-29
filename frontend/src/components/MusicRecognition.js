@@ -338,7 +338,7 @@ const MusicRecognition = () => {
                   <div style={{ marginTop: '12px', padding: '8px', background: '#dcfce7', borderRadius: '6px' }}>
                     <p style={{ margin: 0, fontSize: '12px', color: '#166534' }}>
                       💡 <strong>Options:</strong> Leave times blank to download full audio as MP3, or specify both "2:15" to "2:45" to extract just that segment. 
-                      Perfect for Beatles Greatest Hits compilations!
+                      Works best with YouTube videos. Other platforms may require public access.
                     </p>
                   </div>
                 </div>
