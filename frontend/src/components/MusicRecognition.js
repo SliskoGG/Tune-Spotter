@@ -47,7 +47,7 @@ const MusicRecognition = () => {
     }
   };
 
-  const handleUrlRecognition = async () => {
+  const handleUrlExtraction = async () => {
     if (!url.trim()) {
       setError('Please enter a valid URL');
       return;
@@ -60,7 +60,7 @@ const MusicRecognition = () => {
       const formData = new FormData();
       formData.append('url', url);
       
-      // Add enhanced features
+      // Add time parameters
       if (startTime.trim()) {
         formData.append('start_time', startTime);
       }
@@ -68,15 +68,15 @@ const MusicRecognition = () => {
         formData.append('end_time', endTime);
       }
 
-      const response = await axios.post(`${API_BASE_URL}/api/recognize/url`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/api/extract/url`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      setResult(response.data);
+      setExtractionResult(response.data);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to recognize music from URL');
+      setError(err.response?.data?.detail || 'Failed to extract audio from URL');
     } finally {
       setIsLoading(false);
     }
