@@ -282,10 +282,12 @@ const MusicRecognition = () => {
                     </label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <input
-                        type="checkbox"
-                        checked={sampleMultiple}
-                        onChange={(e) => setSampleMultiple(e.target.checked)}
-                        style={{ width: '16px', height: '16px' }}
+                        type="text"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        placeholder="5:00 or 2:30 (MM:SS)"
+                        className="input"
+                        style={{ fontSize: '14px', padding: '8px 12px' }}
                       />
                       <span style={{ fontSize: '13px', color: '#64748b' }}>
                         Try multiple points in long videos (3+ min)
