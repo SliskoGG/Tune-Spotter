@@ -182,7 +182,7 @@ const MusicRecognition = () => {
                 onClick={() => { setActiveTab('url'); resetState(); }}
                 className={`tab-button ${activeTab === 'url' ? 'active' : ''}`}
               >
-                From URL
+                Extract Audio
               </button>
               <button
                 onClick={() => { setActiveTab('record'); resetState(); }}
