@@ -268,7 +268,7 @@ const MusicRecognition = () => {
               <div>
                 <h2 className="section-title">Extract Audio from URL</h2>
                 <p className="text-body" style={{ marginBottom: '24px' }}>
-                  Extract audio clips from YouTube videos - perfect for getting specific songs from compilations
+                  Extract audio clips from YouTube videos and other supported platforms
                 </p>
                 
                 {/* Main URL Input */}
