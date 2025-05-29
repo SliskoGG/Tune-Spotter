@@ -102,6 +102,7 @@ const MusicRecognition = () => {
       };
       
       setAudioChunks(chunks);
+      setAudioChunks(chunks);
       mediaRecorder.start();
       setIsRecording(true);
       
