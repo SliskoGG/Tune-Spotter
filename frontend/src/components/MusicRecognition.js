@@ -53,8 +53,11 @@ const MusicRecognition = () => {
       return;
     }
 
-    if (!startTime.trim() || !endTime.trim()) {
-      setError('Please specify both start time and end time for extraction');
+    // Check if user wants to extract a segment or full audio
+    const isSegmentExtraction = startTime.trim() || endTime.trim();
+    
+    if (isSegmentExtraction && (!startTime.trim() || !endTime.trim())) {
+      setError('For segment extraction, please specify both start time and end time');
       return;
     }
 
@@ -64,8 +67,14 @@ const MusicRecognition = () => {
     try {
       const formData = new FormData();
       formData.append('url', url);
-      formData.append('start_time', startTime);
-      formData.append('end_time', endTime);
+      
+      // Add time parameters only if specified
+      if (startTime.trim()) {
+        formData.append('start_time', startTime);
+      }
+      if (endTime.trim()) {
+        formData.append('end_time', endTime);
+      }
 
       const response = await axios.post(`${API_BASE_URL}/api/extract/url`, formData, {
         headers: {
@@ -100,8 +109,9 @@ const MusicRecognition = () => {
       window.URL.revokeObjectURL(downloadUrl);
       
       // Show success message
+      const extractionType = isSegmentExtraction ? 'segment' : 'full audio';
       setExtractionResult({
-        title: 'Audio extracted and downloaded successfully!',
+        title: `Audio ${extractionType} extracted and downloaded!`,
         message: `File "${filename}" has been saved to your Downloads folder.`,
         status: 'success'
       });
