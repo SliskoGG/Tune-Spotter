@@ -290,7 +290,7 @@ const MusicRecognition = () => {
                         style={{ fontSize: '14px', padding: '8px 12px' }}
                       />
                       <span style={{ fontSize: '13px', color: '#64748b' }}>
-                        Try multiple points in long videos (3+ min)
+                        Optional end time for the clip
                       </span>
                     </div>
                   </div>
