@@ -514,12 +514,11 @@ const MusicRecognition = () => {
             </div>
           )}
 
-          {/* Footer */}
-          <div style={{ textAlign: 'center', paddingBottom: '32px' }}>
-            <p className="text-small">
-              Files are automatically deleted after processing for privacy
-            </p>
-          </div>
+            <div style={{ textAlign: 'center', paddingBottom: '32px' }}>
+              <p className="text-small">
+                Files are automatically deleted after processing for privacy
+              </p>
+            </div>
 
         </div>
       </div>
